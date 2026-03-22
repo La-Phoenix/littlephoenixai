@@ -4,7 +4,27 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>littlephoenixai</title>
+    <title>Little Phoenix - RAG Assistant</title>
+    <script>
+      // Initialize theme before React renders to prevent flash
+      (function() {
+        const themeMode = localStorage.getItem('theme-mode') || 'light';
+        let effectiveTheme = 'light';
+        
+        if (themeMode === 'dark') {
+          effectiveTheme = 'dark';
+        } else if (themeMode === 'system') {
+          effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        
+        const root = document.documentElement;
+        if (effectiveTheme === 'dark') {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

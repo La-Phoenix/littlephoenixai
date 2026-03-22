@@ -1,0 +1,44 @@
+# Dependencies
+node_modules
+
+# Git
+.git
+.gitignore
+
+# Development
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist
+build
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+coverage
+.nyc_output
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Package managers
+pnpm-lock.yaml
+yarn.lock
+
+# GitHub
+.github
+
+# Documentation
+README.md
+CHANGELOG.md

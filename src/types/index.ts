@@ -13,24 +13,47 @@ export interface ConversationHistory {
   updatedAt: Date;
 }
 
-export interface DocumentUploadResponse {
-  success: boolean;
+// Backend Response Wrapper
+export interface ApiResponse<T> {
   message: string;
-  documentId?: string;
+  data: T | null;
+  isSuccess: boolean;
 }
 
+// Chat Request
+export interface ChatRequest {
+  question: string;
+}
+
+// Chat Response Data
+export interface ChatResponseData {
+  question: string;
+  message: string;
+}
+
+// Document Upload Request
+export interface AddDocRequest {
+  text: string;
+}
+
+// Document Upload Response (wrapped in ApiResponse)
+export type DocumentUploadResponse = ApiResponse<string>;
+
+// Ask Response - what we use internally
 export interface AskResponse {
   answer: string;
   sources?: string[];
   confidence?: number;
 }
 
+// Search Result
 export interface SearchResult {
   id: string;
   content: string;
   score: number;
 }
 
+// API Error
 export interface APIError {
   message: string;
   code?: string;

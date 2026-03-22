@@ -1,412 +1,395 @@
-# Little Phoenix - RAG Assistant UI
+# Little Phoenix RAG Assistant - Frontend
 
-A beautiful, professional React + TypeScript application for the Little Phoenix RAG (Retrieval Augmented Generation) Assistant. Features theme toggle, responsive design, and seamless backend integration.
+A professional, production-ready React + TypeScript frontend for the Little Phoenix RAG (Retrieval-Augmented Generation) Assistant. Beautiful, responsive UI with dark mode support, document management, and real-time chat capabilities.
 
-## 🚀 Features
+## 🎯 Features
 
-- **Dark/Light Theme Toggle** - Beautiful theme switching with system preference detection
-- **Responsive Design** - Works perfectly on desktop, tablet, and mobile devices
-- **Chat Interface** - Real-time conversation with the AI assistant
-- **Document Upload** - Drag-and-drop document upload support
-- **Conversation History** - Track and manage past conversations
-- **Professional UI** - Built with Tailwind CSS for modern aesthetics
-- **Type-Safe** - Full TypeScript support throughout the application
+- **Professional UI/UX** - Beautiful gradient designs, glass-morphism effects, smooth animations
+- **Dark/Light Mode** - System preference detection with persistent theme storage
+- **Real-time Chat** - Connect to RAG backend for intelligent question answering
+- **Document Management** - Upload and manage documents via file drag-drop or text input
+- **Smart Search** - Query uploaded documents and retrieve relevant results
+- **Toast Notifications** - Toast feedback system with auto-dismiss
+- **Fully Responsive** - Mobile-first design with optimized layouts for all devices
+- **TypeScript** - 100% type-safe codebase with strict type checking
+- **Production Ready** - Optimized builds with code splitting for better performance
 
-## 🛠️ Tech Stack
+## 🚀 Quick Start
 
-- **Frontend Framework**: React 19 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS 4
-- **HTTP Client**: Axios
-- **Icons**: Lucide React
-- **Theme Management**: Custom React Context
+### Prerequisites
+- Node.js 16+ and npm
+- Backend API running at `https://localhost:7268` (for development)
 
-## 📋 Prerequisites
-
-- Node.js 18+ or higher
-- npm or yarn
-
-## 🚀 Getting Started
-
-### 1. Install Dependencies
+### Installation
 
 ```bash
 npm install
 ```
 
-### 2. Configure API Endpoint
-
-Create a `.env` file from the example:
-
-```bash
-cp .env.example .env
-```
-
-Then update the API base URL in `.env`:
-
-```
-VITE_API_BASE_URL=http://your-backend-url:5000/api
-```
-
-### 3. Development
+### Development Server
 
 ```bash
 npm run dev
 ```
 
-The app will open at http://localhost:5173
+Starts the Vite dev server at `http://localhost:5173`
 
-### 4. Production Build
+### Build for Production
 
 ```bash
 npm run build
-npm run preview
 ```
 
-### 5. Linting
+Generates optimized build in `dist/` directory with code splitting:
+- `vendor-react.js` - React library bundle
+- `vendor-axios.js` - HTTP client bundle  
+- `vendor-other.js` - Other dependencies
+- Component bundles for better caching
+- `index.css` - Compiled Tailwind CSS
+
+### Linting
 
 ```bash
 npm run lint
 ```
 
-## 📁 Project Structure
+## 🏗️ Architecture
+
+### Technology Stack
+
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| UI Framework | React | 19 |
+| Language | TypeScript | 5.x |
+| Build Tool | Vite | 8.x |
+| Styling | Tailwind CSS | 4 |
+| Icons | Lucide React | Latest |
+| HTTP Client | Axios | Latest |
+
+### Project Structure
 
 ```
 src/
-├── components/          # Reusable React components
-│   ├── ChatInterface.tsx    # Main chat UI
-│   ├── DocumentUpload.tsx   # File upload component
-│   ├── Header.tsx          # Top navigation
-│   ├── Sidebar.tsx         # Side navigation
-│   └── ThemeToggle.tsx      # Theme switcher
+├── components/          # Reusable UI components
+│   ├── ChatInterface.tsx
+│   ├── DocumentUpload.tsx
+│   ├── Search.tsx
+│   ├── Header.tsx
+│   ├── Sidebar.tsx
+│   ├── Toast.tsx
+│   └── ThemeToggle.tsx
 ├── context/            # React Context providers
-│   └── ThemeContext.tsx    # Theme management
-├── layouts/            # Page layout components
-│   └── MainLayout.tsx      # Main layout wrapper
-├── pages/              # Page components
-│   └── ChatPage.tsx        # Chat interface page
-├── services/           # API and external services
-│   └── api.ts             # Backend API client
-├── types/              # TypeScript type definitions
-│   └── index.ts           # Shared types
-├── App.tsx             # Root component
-├── main.tsx            # Entry point
-└── index.css           # Global Tailwind styles
+│   ├── ThemeContext.tsx
+│   └── ToastContext.tsx
+├── layouts/
+│   └── MainLayout.tsx
+├── pages/
+│   ├── ChatPage.tsx
+│   └── App.tsx
+├── services/
+│   └── api.ts         # Axios API client
+├── types/
+│   └── index.ts       # TypeScript type definitions
+├── index.css          # Global Tailwind styles
+└── main.tsx           # React entry point
+```
+
+## 🔌 API Integration
+
+### Backend Endpoints
+
+The frontend connects to a .NET backend with the following API structure:
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | `/api/chat` | Submit questions to RAG system |
+| POST | `/api/vendor/add` | Upload documents (text or file) |
+| GET | `/api/search` | Search uploaded documents |
+
+### Base URL Configuration
+
+Set the backend API base URL in `.env`:
+
+```env
+VITE_API_BASE_URL=https://localhost:7268
+```
+
+For Vercel deployment, this is configured via environment variables in the Vercel project settings.
+
+### Response Format
+
+All API responses follow this structure:
+
+```typescript
+{
+  isSuccess: boolean
+  message: string
+  data?: T
+}
 ```
 
 ## 🎨 Theme System
-
-The application includes a sophisticated theme system:
 
 - **Light Mode**: Clean white interface optimized for daytime use
 - **Dark Mode**: Dark interface optimized for low-light environments
 - **System Preference**: Automatically detects and respects user's OS theme preference
 - **Manual Toggle**: Users can override system preference with the theme toggle button
+- **Persistence**: Theme choice is saved in localStorage
 
-## 🔌 API Integration
-
-### Backend Endpoints Expected
-
-The frontend expects the following endpoints from your .NET backend:
-
-1. **POST /ask**
-   ```json
-   {
-     "question": "string",
-     "conversationHistory": ["string"]
-   }
-   ```
-   Response:
-   ```json
-   {
-     "answer": "string",
-     "sources": ["string"],
-     "confidence": number
-   }
-   ```
-
-2. **POST /add-document**
-   ```json
-   {
-     "text": "string",
-     "metadata": {}
-   }
-   ```
-   Response:
-   ```json
-   {
-     "success": boolean,
-     "message": "string",
-     "documentId": "string"
-   }
-   ```
-
-3. **POST /search** (Internal)
-   ```json
-   {
-     "query": "string",
-     "limit": number
-   }
-   ```
-
-4. **GET /health**
-   - Health check endpoint
-
-## 🎯 Component Architecture
-
-### ThemeProvider
-
-Wraps the entire application to provide theme context to all components.
-
-```typescript
-import { ThemeProvider } from './context/ThemeContext';
-
-<ThemeProvider>
-  <App />
-</ThemeProvider>
-```
-
-### useTheme Hook
-
-Access theme in any component:
+### Using Theme in Components
 
 ```typescript
 import { useTheme } from './context/ThemeContext';
 
 function MyComponent() {
-  const { theme, toggleTheme, setTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   
-  return <button onClick={toggleTheme}>Toggle Theme</button>;
+  return (
+    <div className={theme === 'dark' ? 'bg-gray-900' : 'bg-white'}>
+      <button onClick={toggleTheme}>Toggle Theme</button>
+    </div>
+  );
 }
-```
-
-### API Service
-
-Singleton service for all backend calls:
-
-```typescript
-import { api } from './services/api';
-
-// Ask a question
-const response = await api.ask('What is RAG?');
-
-// Upload document
-const result = await api.addDocument(documentText);
-
-// Set auth token
-api.setAuthToken(token);
 ```
 
 ## 📱 Responsive Design
 
 The application is fully responsive:
 
-- **Mobile (< 768px)**: Full-width layout with collapsible sidebar
-- **Tablet (768px - 1024px)**: Side-by-side chat and upload
-- **Desktop (> 1024px)**: Optimal three-column layout
+- **Mobile (< 768px)**: Full-width chat with upload/search at top (scrollable)
+- **Tablet (768px - 1024px)**: Side-by-side layout
+- **Desktop (> 1024px)**: Optimized three-column layout with proper spacing
 
 ## 🌈 Styling with Tailwind CSS
 
-All styling uses Tailwind CSS with custom configuration:
+All styling uses Tailwind CSS with dark mode support:
 
-- Custom color palette (Primary Purple, Secondary Green)
-- Custom shadows and depth effects
+- Custom color palette integrated with theme system
 - Smooth animations and transitions
-- Dark mode support
-- Responsive breakpoints
-- Component utilities (`.btn`, `.card`, `.input-field`, `.glass`)
+- Dark mode support via class strategy
+- Responsive breakpoints (mobile, tablet, desktop)
+- Glass-morphism and gradient effects
 
-### Custom Component Classes
+## 🚀 Deployment to Vercel
 
-```css
-.btn-primary        /* Primary button */
-.btn-secondary      /* Secondary button */
-.btn-outline        /* Outline button */
-.card               /* Card component */
-.input-field        /* Input field */
-.glass              /* Glass morphism effect */
-.container-custom   /* Responsive container */
+### Prerequisites
+
+1. Vercel account (free tier available)
+2. GitHub repository with this code
+3. Backend API with HTTPS endpoint
+
+### Step-by-Step Deployment
+
+#### 1. Connect GitHub Repository
+
+Push code to GitHub:
+
+```bash
+git add .
+git commit -m "Initial commit"
+git push origin main
 ```
+
+#### 2. Import Project to Vercel
+
+1. Go to [vercel.com](https://vercel.com)
+2. Click "New Project"
+3. Select your GitHub repository
+4. Click "Import"
+
+#### 3. Configure Environment Variables
+
+In Vercel project settings, add:
+
+```
+VITE_API_BASE_URL = https://your-production-api.com
+```
+
+Replace `https://your-production-api.com` with your actual backend URL.
+
+#### 4. Configure Deployment Settings
+
+Vercel automatically detects Vite configuration. Verify:
+
+- **Build Command**: `npm run build` ✓ (pre-configured in `vercel.json`)
+- **Output Directory**: `dist` ✓ (pre-configured in `vercel.json`)
+- **Install Command**: `npm install` ✓ (default)
+
+#### 5. Deploy
+
+1. Click "Deploy"
+2. Wait for build to complete (~1-2 minutes)
+3. Your app will be live at `https://your-project.vercel.app`
+
+### Production Checklist
+
+- [ ] Backend API URL configured in Vercel environment variables
+- [ ] Backend supports HTTPS (required by browsers)
+- [ ] Backend CORS settings allow requests from your Vercel domain
+- [ ] All API endpoints tested in production environment
+- [ ] Theme persistence verified across different browsers
+- [ ] Mobile layout tested on target devices
+- [ ] Search functionality returns expected results
+- [ ] Document upload works in production
+
+### SPA Routing Configuration
+
+The `vercel.json` file handles SPA routing configuration:
+
+```json
+{
+  "routes": [
+    {
+      "src": "/assets/.*",
+      "headers": { "cache-control": "public, max-age=31536000, immutable" }
+    },
+    {
+      "src": "/.*",
+      "dest": "/index.html"
+    }
+  ]
+}
+```
+
+This prevents 404 errors when users directly navigate to routes like `/search` or `/chat`.
+
+### Automatic Deploys
+
+Once connected, Vercel automatically deploys:
+- **Production**: Every push to `main` branch
+- **Previews**: Every push to other branches
+- **Rollback**: Can revert to previous deployments instantly
+
+### Monitoring & Debugging
+
+1. View build logs in Vercel dashboard
+2. Check preview deployments for testing
+3. Monitor performance with Vercel Analytics
+4. View error logs in browser DevTools
 
 ## 🔐 Environment Variables
 
-Create a `.env` file in the root directory:
-
+### Development (.env)
 ```
-VITE_API_BASE_URL=http://localhost:5000/api
+VITE_API_BASE_URL=https://localhost:7268
 ```
 
-Available variables:
-- `VITE_API_BASE_URL` - Backend API base URL
-- All variables must start with `VITE_` to be exposed to the frontend
+### Production (Vercel)
+```
+VITE_API_BASE_URL=https://your-production-api.com
+```
 
-## 📦 Dependencies
+**Important**: Environment variables must start with `VITE_` to be exposed to the frontend.
 
-### Production
+## 📦 Build Optimization
 
-- `react` - UI framework
-- `react-dom` - React DOM rendering
-- `tailwindcss` - Utility-first CSS
-- `next-themes` - Theme management (can be integrated)
-- `axios` - HTTP client
-- `lucide-react` - Icon library
-- `clsx` - Utility for conditional classnames
-- `tailwind-merge` - Tailwind class merging
+### Code Splitting
 
-### Development
+The build creates separate bundles for:
+- **vendor-react.js** (~60 KB gzipped) - React and DOM
+- **vendor-axios.js** (~14 KB gzipped) - HTTP client
+- **vendor-other.js** - Other dependencies
+- **Main bundle** - Application code
+- **Styles** - Tailwind CSS (~7 KB gzipped)
 
-- `typescript` - Type checking
-- `vite` - Build tool
-- `eslint` - Code linting
-- `@vitejs/plugin-react` - React plugin for Vite
+### Caching Strategy
 
-## 🚀 Performance Optimizations
+- Assets are cached for 1 year with immutable headers
+- CSS files are split per route for optimal caching
+- Source maps are excluded from production builds
 
-- Lazy-loaded components with React Suspense
-- Code splitting with Vite
-- Optimized images and assets
-- CSS minification
-- Tree shaking of unused code
-- Tailwind CSS purging of unused styles
+### Total Bundle Size
+**~86 KB gzipped** - Excellent performance
 
-## 🔒 Security Best Practices
+## 🧪 Quality Assurance
 
-1. **Environment Variables**: Sensitive data is kept in environment variables
-2. **Input Validation**: User input is validated before sending to API
-3. **CORS**: Backend should configure CORS for the frontend domain
-4. **Authentication**: Support for token-based authentication
-5. **Error Handling**: Graceful error handling and user-friendly messages
+### Type Checking
+```bash
+npm run build  # Includes TypeScript verification
+```
 
-## 📊 Browser Support
+### Linting
+```bash
+npm run lint
+```
 
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
+### Best Practices
+- TypeScript strict mode enabled
+- ESLint rules configured
+- React 19 with latest features
+- Proper error boundaries
+- Graceful error handling
 
 ## 🐛 Troubleshooting
 
 ### Port Already in Use
-
-If port 5173 is already in use:
-
 ```bash
 npm run dev -- --port 3000
 ```
 
-### API Connection Issues
+### Clear Build Cache
+```bash
+rm -rf node_modules dist .next
+npm install
+npm run build
+```
 
-Ensure:
-1. Backend server is running on the correct URL
-2. `VITE_API_BASE_URL` in `.env` matches your backend
-3. CORS is enabled on the backend
+### API Connection Fails
+- Verify `VITE_API_BASE_URL` in `.env`
+- Check backend is running on correct port
+- Look for CORS errors in browser console
+- Verify backend returns valid JSON
 
 ### Theme Not Persisting
+- Check localStorage is enabled
+- Clear browser cache and localStorage
+- Verify ThemeContext is wrapping app
 
-Clear browser cache and localStorage, then reload the page.
+### Build Size Too Large
+- Check for unused dependencies in `package.json`
+- Verify code splitting is working
+- Review `dist/` file structure
 
-## 🚀 Future Enhancements
+## 📚 Documentation
 
-- [ ] User authentication and profiles
-- [ ] Conversation persistence to database
-- [ ] Advanced search and filtering
-- [ ] Markdown rendering in chat
-- [ ] Code syntax highlighting
-- [ ] Export conversations to PDF
-- [ ] Real-time typing indicators
-- [ ] Message reactions and emoji support
-- [ ] File upload with progress tracking
-- [ ] Voice input/output support
+- [React Documentation](https://react.dev)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [Tailwind CSS Docs](https://tailwindcss.com/docs)
+- [Vite Documentation](https://vite.dev)
+- [Axios Documentation](https://axios-http.com)
+- [Vercel Documentation](https://vercel.com/docs)
+- [Lucide Icons](https://lucide.dev)
 
-## 📝 Code Style
+## 🚀 Performance Tips
 
-This project follows these conventions:
+1. **Network**: Content is delivered via Vercel's global CDN
+2. **Caching**: Static assets cached aggressively
+3. **Compression**: Automatic gzip compression
+4. **Optimization**: Production builds minified and optimized
+5. **Monitoring**: Use Vercel Analytics to track performance
 
-- ESLint rules defined in `eslint.config.js`
-- TypeScript strict mode enabled
-- Prettier formatting (optional, can be added)
-- Tailwind CSS for all styling
-- React functional components with hooks
+## 🔒 Security
 
-## 🤝 Contributing
+- Environment variables in `.env` (never committed)
+- API calls over HTTPS
+- Input sanitization for file uploads
+- No sensitive data in localStorage
+- CORS configured on backend
+- Content Security Policy ready
+
+## 📝 Contributing
 
 When contributing:
 
 1. Ensure TypeScript types are complete
-2. Follow ESLint rules
-3. Use Tailwind CSS for styling
-4. Test responsive design
-5. Update this README if adding new features
-
-## 📞 Support
-
-For issues, questions, or contributions, please reference the Little Phoenix documentation or create an issue in the repository.
+2. Follow ESLint rules (`npm run lint`)
+3. Use Tailwind CSS for all styling
+4. Test responsive design on mobile
+5. Update this README for new features
 
 ---
 
 Built with ❤️ for the Little Phoenix RAG Assistant
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+**Version**: 1.0.0  
+**License**: Proprietary

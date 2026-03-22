@@ -1,12 +1,12 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosError } from 'axios';
-import type { AskResponse, DocumentUploadResponse, APIError } from '../types';
+import type { AskResponse, DocumentUploadResponse, APIError, ApiResponse, ChatResponseData, ChatRequest, AddDocRequest } from '../types';
 
 class LittlePhoenixAPI {
   private instance: AxiosInstance;
   private baseURL: string;
 
-  constructor(baseURL: string = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api') {
+  constructor(baseURL: string = `${import.meta.env.VITE_API_BASE_URL}/api` || 'http://localhost:5000/api') {
     this.baseURL = baseURL;
     this.instance = axios.create({
       baseURL: this.baseURL,
@@ -46,13 +46,21 @@ class LittlePhoenixAPI {
   /**
    * Ask the AI assistant a question
    */
-  async ask(question: string, conversationHistory?: string[]): Promise<AskResponse> {
+  async ask(question: string, _conversationHistory?: string[]): Promise<AskResponse> {
     try {
-      const response = await this.instance.post<AskResponse>('/ask', {
-        question,
-        conversationHistory: conversationHistory || [],
-      });
-      return response.data;
+      const request: ChatRequest = { question };
+      const response = await this.instance.post<ApiResponse<ChatResponseData>>('/chat', request);
+      
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to get chat response');
+      }
+      
+      // Transform backend response to our internal format
+      return {
+        answer: response.data.data.message,
+        sources: [],
+        confidence: undefined,
+      };
     } catch (error) {
       throw this.handleError(error);
     }
@@ -61,12 +69,15 @@ class LittlePhoenixAPI {
   /**
    * Upload a document
    */
-  async addDocument(text: string, metadata?: Record<string, unknown>): Promise<DocumentUploadResponse> {
+  async addDocument(text: string, _metadata?: Record<string, unknown>): Promise<DocumentUploadResponse> {
     try {
-      const response = await this.instance.post<DocumentUploadResponse>('/add-document', {
-        text,
-        metadata,
-      });
+      const request: AddDocRequest = { text };
+      const response = await this.instance.post<DocumentUploadResponse>('/vector/add', request);
+      
+      if (!response.data.isSuccess) {
+        throw new Error(response.data.message || 'Failed to upload document');
+      }
+      
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -74,15 +85,19 @@ class LittlePhoenixAPI {
   }
 
   /**
-   * Search documents (internal use)
+   * Search documents in the database
    */
-  async search(query: string, limit?: number) {
+  async search(query: string, top: number = 3): Promise<{stringValue: string}[]> {
     try {
-      const response = await this.instance.post('/search', {
-        query,
-        limit: limit || 10,
+      const response = await this.instance.get<ApiResponse<{stringValue: string}[]>>('/vector/search', {
+        params: { query, top },
       });
-      return response.data;
+      
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Search failed');
+      }
+      
+      return response.data.data;
     } catch (error) {
       throw this.handleError(error);
     }

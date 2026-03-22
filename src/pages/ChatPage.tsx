@@ -1,58 +1,67 @@
 import React, { Suspense, lazy } from 'react';
 import { ChatInterface } from '../components/ChatInterface';
+import { useTheme } from '../context/ThemeContext';
 
 const DocumentUpload = lazy(() => import('../components/DocumentUpload').then(m => ({ default: m.DocumentUpload })));
+const Search = lazy(() => import('../components/Search').then(m => ({ default: m.Search })));
 
 export const ChatPage: React.FC = () => {
+  const { theme } = useTheme();
+
   return (
-    <div className="h-full flex flex-col lg:flex-row gap-6 p-4 md:p-6">
-      {/* Main Chat Area */}
-      <div className="flex-1 lg:flex-[2]">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-soft dark:shadow-none border border-gray-200 dark:border-gray-800 h-full flex flex-col overflow-hidden">
+    <div className={`h-full flex flex-col lg:flex-row gap-6 p-4 md:p-6 overflow-hidden ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-900'}`}>
+      {/* Main Chat Area - at bottom on mobile, left on desktop */}
+      <div className="flex-1 lg:flex-[2] order-last lg:order-none min-h-0 lg:min-h-full">
+        <div className={`${theme === 'light' ? 'bg-white' : 'bg-gray-800'} rounded-2xl shadow-md ${theme === 'dark' ? 'dark:shadow-lg' : ''} border ${theme === 'light' ? 'border-gray-200' : 'border-gray-700'} h-full flex flex-col overflow-hidden`}>
           <ChatInterface />
         </div>
       </div>
 
-      {/* Sidebar with Document Upload and Info */}
-      <div className="w-full lg:w-80 flex flex-col gap-4">
+      {/* Sidebar with Document Upload and Info - at top on mobile, right on desktop */}
+      <div className="w-full lg:w-80 flex flex-col gap-4 order-first lg:order-none min-h-0 lg:overflow-y-auto overflow-y-auto lg:max-h-full max-h-96">
         {/* Document Upload */}
         <Suspense fallback={<div className="card h-40 animate-pulse" />}>
           <DocumentUpload />
         </Suspense>
 
+        {/* Search */}
+        <Suspense fallback={<div className="card h-40 animate-pulse" />}>
+          <Search />
+        </Suspense>
+
         {/* Info Card */}
-        <div className="card">
+        <div className={`rounded-xl border ${theme === 'light' ? 'border-gray-200 bg-white' : 'border-gray-800 bg-gray-900'} p-6 shadow-md`}>
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className={`text-lg font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'} mb-2`}>
               About Little Phoenix
             </h3>
           </div>
-          <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+          <ul className={`space-y-3 text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
             <li className="flex gap-3">
-              <span className="text-purple-600 dark:text-purple-400 font-semibold">📚</span>
+              <span className="text-purple-600 font-semibold">📚</span>
               <span>Upload documents to train the AI</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-purple-600 dark:text-purple-400 font-semibold">💬</span>
+              <span className="text-purple-600 font-semibold">💬</span>
               <span>Ask questions based on your documents</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-purple-600 dark:text-purple-400 font-semibold">🔄</span>
+              <span className="text-purple-600 font-semibold">🔄</span>
               <span>Get context-aware answers instantly</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-purple-600 dark:text-purple-400 font-semibold">🌙</span>
-              <span>Beautiful dark mode support</span>
+              <span className="text-purple-600 font-semibold">🌙</span>
+              <span>Beautiful dark/light mode support</span>
             </li>
           </ul>
         </div>
 
         {/* Tips Card */}
-        <div className="card bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border border-purple-200 dark:border-purple-800/50">
-          <h4 className="font-semibold text-purple-900 dark:text-purple-300 mb-2">
+        <div className={`rounded-xl border p-6 ${theme === 'light' ? 'from-purple-50 to-purple-100 bg-gradient-to-br border-purple-200 text-purple-900' : 'dark:from-purple-900/20 dark:to-purple-800/20 dark:border-purple-800/50 dark:text-purple-300 from-purple-900/20 to-purple-800/20 border-purple-800/50 text-purple-300'}`}>
+          <h4 className="font-semibold mb-2">
             💡 Pro Tips
           </h4>
-          <ul className="space-y-2 text-sm text-purple-800 dark:text-purple-200">
+          <ul className="space-y-2 text-sm">
             <li>• Upload multiple documents for better context</li>
             <li>• Use specific questions for accurate answers</li>
             <li>• Check conversation history anytime</li>

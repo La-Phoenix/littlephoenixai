@@ -1,14 +1,30 @@
 import { ThemeProvider } from './context/ThemeContext';
+import { ToastProvider, useToast } from './context/ToastContext';
+import { ToastContainer } from './components/Toast';
 import { MainLayout } from './layouts/MainLayout';
 import { ChatPage } from './pages/ChatPage';
 import './App.css';
 
-function App() {
+// Inner component to use the toast hook
+const AppContent = () => {
+  const { toasts, removeToast } = useToast();
+
   return (
-    <ThemeProvider>
+    <>
       <MainLayout>
         <ChatPage />
       </MainLayout>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+    </>
+  );
+};
+
+function App() {
+  return (
+    <ThemeProvider>
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </ThemeProvider>
   );
 }
