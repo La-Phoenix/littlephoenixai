@@ -10,23 +10,23 @@ export const ChatPage: React.FC = () => {
 
   return (
     <div className={`h-full flex flex-col lg:flex-row gap-6 p-4 md:p-6 overflow-hidden ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-900'}`}>
-      {/* Main Chat Area - at bottom on mobile, left on desktop */}
-      <div className="flex-1 lg:flex-[2] order-last lg:order-none min-h-0 lg:min-h-full">
+      {/* Main Chat Area */}
+      <div className="flex-1 lg:flex-[2] min-h-0 lg:min-h-full">
         <div className={`${theme === 'light' ? 'bg-white' : 'bg-gray-800'} rounded-2xl shadow-md ${theme === 'dark' ? 'dark:shadow-lg' : ''} border ${theme === 'light' ? 'border-gray-200' : 'border-gray-700'} h-full flex flex-col overflow-hidden`}>
           <ChatInterface />
         </div>
       </div>
 
-      {/* Sidebar with Document Upload and Info - at top on mobile, right on desktop */}
-      <div className="w-full lg:w-80 flex flex-col gap-4 order-first lg:order-none min-h-0 lg:overflow-y-auto overflow-y-auto lg:max-h-full max-h-96">
-        {/* Document Upload */}
-        <Suspense fallback={<div className="card h-40 animate-pulse" />}>
-          <DocumentUpload />
-        </Suspense>
-
+      {/* Desktop-only side panel */}
+      <div className="hidden lg:flex lg:w-80 flex-col gap-4 min-h-0 lg:overflow-y-auto lg:max-h-full">
         {/* Search */}
         <Suspense fallback={<div className="card h-40 animate-pulse" />}>
           <Search />
+        </Suspense>
+
+        {/* Document Upload */}
+        <Suspense fallback={<div className="card h-40 animate-pulse" />}>
+          <DocumentUpload />
         </Suspense>
 
         {/* Info Card */}

@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Menu, X, Plus, FileText, Clock, Settings, LogOut } from 'lucide-react';
+import { Menu, X, Plus, FileText, Clock, Settings, LogOut, MessageSquare, Search, ExternalLink } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  activePage: 'chat' | 'tools';
+  onNavigate: (page: 'chat' | 'tools') => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activePage, onNavigate }) => {
   const [conversations] = useState([
     { id: '1', title: 'About React Fundamentals' },
     { id: '2', title: 'TypeScript Best Practices' },
@@ -51,6 +53,45 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </button>
           </div>
 
+          {/* Navigation */}
+          <div className="px-4 pb-2">
+            <h3 className={`text-xs font-semibold ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'} uppercase px-2 mb-3`}>
+              Navigate
+            </h3>
+            <div className="space-y-2">
+              <button
+                onClick={() => onNavigate('chat')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm ${
+                  activePage === 'chat'
+                    ? theme === 'light'
+                      ? 'bg-purple-100 text-purple-700'
+                      : 'bg-purple-900/30 text-purple-300'
+                    : theme === 'light'
+                      ? 'text-gray-700 hover:bg-gray-100'
+                      : 'text-gray-300 hover:bg-gray-800'
+                }`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                Chat
+              </button>
+              <button
+                onClick={() => onNavigate('tools')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm ${
+                  activePage === 'tools'
+                    ? theme === 'light'
+                      ? 'bg-purple-100 text-purple-700'
+                      : 'bg-purple-900/30 text-purple-300'
+                    : theme === 'light'
+                      ? 'text-gray-700 hover:bg-gray-100'
+                      : 'text-gray-300 hover:bg-gray-800'
+                }`}
+              >
+                <Search className="w-4 h-4" />
+                Upload & Search
+              </button>
+            </div>
+          </div>
+
           {/* Conversations */}
           <div className="flex-1 px-4 pt-2">
             <h3 className={`text-xs font-semibold ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'} uppercase px-2 mb-3`}>
@@ -71,6 +112,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
           {/* Bottom Actions */}
           <div className={`p-4 border-t ${theme === 'light' ? 'border-gray-200' : 'border-gray-800'} space-y-2`}>
+            <a
+              href="https://my-portfolio-gray-nine.vercel.app/"
+              target="_blank"
+              rel="noreferrer"
+              className={`w-full flex items-center justify-between gap-3 px-3 py-2 ${theme === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-300 hover:bg-gray-800'} rounded-lg transition-colors text-sm`}
+            >
+              <span className="flex items-center gap-3">
+                <ExternalLink className="w-4 h-4" />
+                Meet Developer
+              </span>
+              <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+            </a>
             <button className={`w-full flex items-center gap-3 px-3 py-2 ${theme === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-300 hover:bg-gray-800'} rounded-lg transition-colors text-sm`}>
               <FileText className="w-4 h-4" />
               Documents
@@ -83,6 +136,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <LogOut className="w-4 h-4" />
               Logout
             </button>
+            <p className={`text-xs text-center pt-2 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+              Copyright © {new Date().getFullYear()} Little Phoenix AI
+            </p>
           </div>
         </div>
       </aside>

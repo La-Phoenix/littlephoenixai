@@ -6,9 +6,11 @@ import { useTheme } from '../context/ThemeContext';
 
 interface MainLayoutProps {
   children: ReactNode;
+  activePage: 'chat' | 'tools';
+  onNavigate: (page: 'chat' | 'tools') => void;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+export const MainLayout: React.FC<MainLayoutProps> = ({ children, activePage, onNavigate }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { theme } = useTheme();
 
@@ -27,7 +29,15 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
       {/* Main Content Area */}
       <div className={`flex flex-1 overflow-hidden ${theme === 'light' ? 'bg-white' : 'bg-gray-950'}`}>
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          activePage={activePage}
+          onNavigate={(page) => {
+            onNavigate(page);
+            setSidebarOpen(false);
+          }}
+        />
         <main className={`flex-1 overflow-auto ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-900'}`}>
           {children}
         </main>
