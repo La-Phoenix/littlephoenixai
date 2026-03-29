@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Menu, X, Plus, FileText, Clock, Settings, LogOut, MessageSquare, Search, ExternalLink } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../context/ToastContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -16,6 +18,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activePage, o
     { id: '3', title: 'Web Performance Tips' },
   ]);
   const { theme } = useTheme();
+  const { logout, user } = useAuth();
+  const { addToast } = useToast();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await logout();
+      addToast('Logged out successfully', 'success');
+    } catch (error) {
+      addToast('Failed to logout', 'error');
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <>
@@ -132,9 +149,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activePage, o
               <Settings className="w-4 h-4" />
               Settings
             </button>
-            <button className={`w-full flex items-center gap-3 px-3 py-2 ${theme === 'light' ? 'text-red-600 hover:bg-red-50' : 'text-red-400 hover:bg-red-900/20'} rounded-lg transition-colors text-sm`}>
+
+            {/* User Info */}
+            {user && (
+              <div className={`px-3 py-2 rounded-lg text-sm ${theme === 'light' ? 'bg-gray-100 text-gray-700' : 'bg-gray-800 text-gray-300'} mb-2`}>
+                <p className="font-medium truncate">{user.name || user.email}</p>
+                <p className={`text-xs ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'} truncate`}>
+                  {user.email}
+                </p>
+              </div>
+            )}
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className={`w-full flex items-center gap-3 px-3 py-2 ${
+                isLoggingOut
+                  ? `${theme === 'light' ? 'text-gray-500' : 'text-gray-500'} cursor-not-allowed`
+                  : `${theme === 'light' ? 'text-red-600 hover:bg-red-50' : 'text-red-400 hover:bg-red-900/20'}`
+              } rounded-lg transition-colors text-sm`}
+            >
               <LogOut className="w-4 h-4" />
-              Logout
+              {isLoggingOut ? 'Logging out...' : 'Logout'}
             </button>
             <p className={`text-xs text-center pt-2 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
               Copyright © {new Date().getFullYear()} Little Phoenix AI

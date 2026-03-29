@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosError } from 'axios';
-import type { AskResponse, DocumentUploadResponse, APIError, ApiResponse, ChatResponseData, ChatRequest, AddDocRequest } from '../types';
+import type { AskResponse, DocumentUploadResponse, APIError, ApiResponse, ChatResponseData, ChatRequest, AddDocRequest, AuthResponse } from '../types';
 
 class LittlePhoenixAPI {
   private instance: AxiosInstance;
@@ -11,6 +11,7 @@ class LittlePhoenixAPI {
     this.instance = axios.create({
       baseURL: this.baseURL,
       timeout: 30000,
+      withCredentials: true, // Enable sending cookies with requests
       headers: {
         'Content-Type': 'application/json',
       },
@@ -98,6 +99,34 @@ class LittlePhoenixAPI {
       }
       
       return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Check if user is authenticated
+   */
+  async checkAuth(): Promise<AuthResponse> {
+    try {
+      const response = await this.instance.get<ApiResponse<AuthResponse>>('/auth/me');
+      
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Not authenticated');
+      }
+      
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Logout user
+   */
+  async logout(): Promise<void> {
+    try {
+      await this.instance.post('/auth/logout');
     } catch (error) {
       throw this.handleError(error);
     }

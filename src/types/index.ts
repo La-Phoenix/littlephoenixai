@@ -59,3 +59,16 @@ export interface APIError {
   code?: string;
   statusCode?: number;
 }
+
+// Auth Types
+export interface User {
+  id: string;
+  name?: string;
+  email?: string;
+  picture?: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  isAuthenticated: boolean;
+}
