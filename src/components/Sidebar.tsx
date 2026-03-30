@@ -3,6 +3,7 @@ import { Menu, X, Plus, FileText, Clock, Settings, LogOut, MessageSquare, Search
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../context/ToastContext';
+import { Avatar } from './Avatar';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -152,11 +153,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activePage, o
 
             {/* User Info */}
             {user && (
-              <div className={`px-3 py-2 rounded-lg text-sm ${theme === 'light' ? 'bg-gray-100 text-gray-700' : 'bg-gray-800 text-gray-300'} mb-2`}>
-                <p className="font-medium truncate">{user.name || user.email}</p>
-                <p className={`text-xs ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'} truncate`}>
-                  {user.email}
-                </p>
+              <div className={`px-3 py-3 rounded-lg text-sm ${theme === 'light' ? 'bg-gray-100' : 'bg-gray-800'} mb-2 flex items-center gap-3`}>
+                <Avatar
+                  pictureUrl={user.pictureUrl}
+                  name={user.name}
+                  email={user.email}
+                  size="md"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className={`font-medium truncate ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                    {user.name || user.email || 'User'}
+                  </p>
+                  <p className={`text-xs ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'} truncate`}>
+                    {user.email}
+                  </p>
+                </div>
               </div>
             )}
 
