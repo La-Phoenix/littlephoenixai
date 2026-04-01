@@ -12,7 +12,7 @@ export const AuthPage: React.FC = () => {
     try {
       setIsLoading(true);
       // Redirect to backend OAuth endpoint - backend handles the OAuth flow
-      window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google`;
+      window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/login`;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to initiate Google login';
       addToast(message, 'error');

@@ -2,12 +2,16 @@ import axios from 'axios';
 import type { AxiosInstance, AxiosError } from 'axios';
 import type { AskResponse, DocumentUploadResponse, APIError, ApiResponse, ChatResponseData, ChatRequest, AddDocRequest, AuthResponse } from '../types';
 
+// Set credentials globally for all axios requests
+axios.defaults.withCredentials = true;
+
 class LittlePhoenixAPI {
   private instance: AxiosInstance;
   private baseURL: string;
 
   constructor(baseURL: string = `${import.meta.env.VITE_API_BASE_URL}/api` || 'http://localhost:5000/api') {
     this.baseURL = baseURL;
+    console.log('Initializing API with baseURL:', this.baseURL);
     this.instance = axios.create({
       baseURL: this.baseURL,
       timeout: 30000,
@@ -109,14 +113,36 @@ class LittlePhoenixAPI {
    */
   async checkAuth(): Promise<AuthResponse> {
     try {
-      const response = await this.instance.get<ApiResponse<AuthResponse>>('/auth/me');
+      const fullUrl = `${this.baseURL}/auth/me`;
+      console.log('Making auth check request to:', fullUrl);
+      console.log('Credentials enabled:', this.instance.defaults.withCredentials);
+      const response = await this.instance.get<ApiResponse<any>>('/auth/me');
       
-      if (!response.data.isSuccess || !response.data.data) {
+      console.log('Raw response:', response.data);
+      console.log('Response isSuccess:', response.data.isSuccess);
+      console.log('Response data:', response.data.data);
+      
+      if (!response.data.isSuccess) {
+        console.error('isSuccess is false');
         throw new Error(response.data.message || 'Not authenticated');
       }
+
+      // Backend returns user object directly in data, not wrapped with isAuthenticated
+      const user = response.data.data;
+      if (!user || !user.id) {
+        console.error('No user data in response');
+        throw new Error('Invalid user data');
+      }
       
-      return response.data.data;
+      const authResponse: AuthResponse = {
+        user,
+        isAuthenticated: true,
+      };
+      
+      console.log('Auth check successful, user:', user);
+      return authResponse;
     } catch (error) {
+      console.error('Auth check error:', error);
       throw this.handleError(error);
     }
   }

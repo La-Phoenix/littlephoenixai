@@ -1,7 +1,7 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { api } from '../services/api';
-import type { User, AuthResponse } from '../types';
+import type { User, AuthResponse, APIError } from '../types';
 
 interface AuthContextType {
   user: User | null;
@@ -29,24 +29,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuth();
   }, []);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
+      console.log('Checking authentication with /api/auth/me');
       const response: AuthResponse = await api.checkAuth();
+      console.log('Auth check successful:', response);
+      console.log('Setting user:', response.user);
+      console.log('Setting isAuthenticated to:', response.isAuthenticated);
       setUser(response.user);
       setIsAuthenticated(response.isAuthenticated);
+      console.log('State updated.');
     } catch (err) {
+      const apiError = err as APIError;
+      console.log('Auth check failed:', apiError);
+      console.error('Full error object:', err);
       setIsAuthenticated(false);
       setUser(null);
-      // 401 is expected when not logged in, so don't set error for it
-      if (err instanceof Error && err.message !== 'Not authenticated') {
-        setError(err.message);
+      
+      // 401 is expected when not logged in - don't set error for it
+      if (apiError.statusCode === 401) {
+        console.log('User is not authenticated (401)');
+      } else {
+        // Other errors should be displayed
+        setError(apiError.message || 'Authentication check failed');
       }
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const logout = async () => {
     try {

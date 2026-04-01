@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider, useToast } from './context/ToastContext';
 import { AuthProvider } from './context/AuthContext';
@@ -16,9 +16,48 @@ type AppPage = 'chat' | 'tools';
 // Inner component to use the toast hook and auth
 const AppContent = () => {
   const { toasts, removeToast } = useToast();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, checkAuth, user } = useAuth();
   const { theme } = useTheme();
+  const { addToast } = useToast();
   const [activePage, setActivePage] = useState<AppPage>('chat');
+  const redirectProcessed = useRef(false);
+  const wasAuthenticated = useRef(false);
+
+  // Handle OAuth redirect - check for errors and verify cookie
+  useEffect(() => {
+    // Only process redirect once
+    if (redirectProcessed.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+
+    if (error) {
+      redirectProcessed.current = true;
+      console.log('OAuth error detected:', error);
+      // Show error from OAuth redirect
+      addToast(`Authentication failed: ${decodeURIComponent(error)}`, 'error');
+      // Clean up the error param from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (params.size > 0) {
+      redirectProcessed.current = true;
+      console.log('OAuth redirect detected, checking auth...');
+      // OAuth redirect detected, check auth with new cookie
+      checkAuth();
+      // Clean up params from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [addToast, checkAuth]);
+
+  // Show login toast when user becomes authenticated
+  useEffect(() => {
+    if (isAuthenticated && !wasAuthenticated.current && user) {
+      console.log('User logged in, showing success toast');
+      addToast(`Welcome, ${user.name || 'Samuel'}! 👋`, 'success');
+      wasAuthenticated.current = true;
+    } else if (!isAuthenticated) {
+      wasAuthenticated.current = false;
+    }
+  }, [isAuthenticated, user, addToast]);
 
   // Show loading state while checking authentication
   if (isLoading) {
