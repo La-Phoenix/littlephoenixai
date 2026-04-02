@@ -1,6 +1,17 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosError } from 'axios';
-import type { AskResponse, DocumentUploadResponse, APIError, ApiResponse, ChatResponseData, ChatRequest, AddDocRequest, AuthResponse } from '../types';
+import type {
+  AskResponse,
+  DocumentUploadResponse,
+  APIError,
+  ApiResponse,
+  ChatResponseData,
+  ChatRequest,
+  AddDocRequest,
+  AuthResponse,
+  ChatMessageResponse,
+  ConversationResponse,
+} from '../types';
 
 // Set credentials globally for all axios requests
 axios.defaults.withCredentials = true;
@@ -51,21 +62,70 @@ class LittlePhoenixAPI {
   /**
    * Ask the AI assistant a question
    */
-  async ask(question: string, _conversationHistory?: string[]): Promise<AskResponse> {
+  async ask(question: string, conversationId?: string): Promise<AskResponse> {
     try {
-      const request: ChatRequest = { question };
-      const response = await this.instance.post<ApiResponse<ChatResponseData>>('/chat', request);
+      const request: ChatRequest = {
+        question,
+        ...(conversationId ? { conversationId } : {}),
+      };
+      const response = await this.instance.post<ApiResponse<ChatResponseData | ChatMessageResponse>>('/chat', request);
       
       if (!response.data.isSuccess || !response.data.data) {
         throw new Error(response.data.message || 'Failed to get chat response');
       }
+
+      const data = response.data.data as Partial<ChatResponseData & ChatMessageResponse>;
+      const answer = data.content ?? data.message;
+
+      if (!answer) {
+        throw new Error('Invalid chat response from server');
+      }
       
       // Transform backend response to our internal format
       return {
-        answer: response.data.data.message,
+        answer,
+        conversationId: data.conversationId,
+        id: data.id,
+        createdAt: data.createdAt,
         sources: [],
         confidence: undefined,
       };
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Fetch all conversations for current user
+   */
+  async getUserConversations(): Promise<ConversationResponse[]> {
+    try {
+      const response = await this.instance.get<ApiResponse<ConversationResponse[]>>('/chat/conversations/user');
+
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to fetch conversations');
+      }
+
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Fetch all messages for a specific conversation
+   */
+  async getConversationMessages(conversationId?: string): Promise<ChatMessageResponse[]> {
+    try {
+      const response = await this.instance.get<ApiResponse<ChatMessageResponse[]>>('/chat/conversations/messages', {
+        params: conversationId ? { conversationId } : undefined,
+      });
+
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to fetch conversation messages');
+      }
+
+      return response.data.data;
     } catch (error) {
       throw this.handleError(error);
     }

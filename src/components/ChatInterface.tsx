@@ -1,23 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Loader, AlertCircle } from 'lucide-react';
-import { api } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
-import type { Message } from '../types';
+import { useConversation } from '../hooks/useConversation';
 
 export const ChatInterface: React.FC = () => {
   const { theme } = useTheme();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: 'Hello! I\'m Little Phoenix, your AI assistant powered by RAG. I can help you by answering questions based on your uploaded documents. How can I help you today?',
-      timestamp: new Date(),
-    },
-  ]);
+  const { messages, sendMessage, isSendingMessage, isLoadingMessages, chatError } = useConversation();
 
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -31,44 +21,11 @@ export const ChatInterface: React.FC = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!input.trim()) return;
+    const text = input.trim();
+    if (!text) return;
 
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: input,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
     setInput('');
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Get conversation history for context
-      const conversationHistory = messages.map((msg) => `${msg.role}: ${msg.content}`);
-
-      // Call API
-      const response = await api.ask(input, conversationHistory);
-
-      // Add assistant response
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response.answer,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to get response';
-      setError(errorMessage);
-      console.error('Error:', err);
-    } finally {
-      setIsLoading(false);
-    }
+    await sendMessage(text);
   };
 
   return (
@@ -98,22 +55,22 @@ export const ChatInterface: React.FC = () => {
           </div>
         ))}
 
-        {isLoading && (
+        {(isSendingMessage || isLoadingMessages) && (
           <div className="flex justify-start animate-fade-in">
             <div className={`${theme === 'light' ? 'bg-gray-100' : 'bg-gray-700'} rounded-lg rounded-bl-none px-4 py-3 flex items-center gap-2`}>
               <Loader className="w-4 h-4 animate-spin" />
               <span className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-300'}`}>
-                Thinking...
+                {isLoadingMessages ? 'Loading conversation...' : 'Thinking...'}
               </span>
             </div>
           </div>
         )}
 
-        {error && (
+        {chatError && (
           <div className="flex justify-start animate-fade-in">
             <div className={`max-w-xs md:max-w-2xl rounded-lg px-4 py-3 flex items-gap-2 border ${theme === 'light' ? 'bg-red-50 border-red-200' : 'bg-red-900/20 border-red-800'}`}>
               <AlertCircle className={`w-4 h-4 ${theme === 'light' ? 'text-red-600' : 'text-red-400'} flex-shrink-0 mt-0.5`} />
-              <p className={`text-sm ${theme === 'light' ? 'text-red-700' : 'text-red-300'} ml-2`}>{error}</p>
+              <p className={`text-sm ${theme === 'light' ? 'text-red-700' : 'text-red-300'} ml-2`}>{chatError}</p>
             </div>
           </div>
         )}
@@ -136,7 +93,7 @@ export const ChatInterface: React.FC = () => {
                 }
               }}
               placeholder="Ask me anything about your documents..."
-              disabled={isLoading}
+              disabled={isSendingMessage || isLoadingMessages}
               className={`flex-1 px-4 py-3 rounded-lg border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                 theme === 'light'
                   ? 'border-gray-200 bg-white text-gray-900 placeholder-gray-500'
@@ -145,7 +102,7 @@ export const ChatInterface: React.FC = () => {
             />
             <button
               type="submit"
-              disabled={isLoading || !input.trim()}
+              disabled={isSendingMessage || isLoadingMessages || !input.trim()}
               className="btn-primary p-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-5 h-5" />

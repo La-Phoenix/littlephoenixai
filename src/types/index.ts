@@ -23,12 +23,33 @@ export interface ApiResponse<T> {
 // Chat Request
 export interface ChatRequest {
   question: string;
+  conversationId?: string;
 }
 
 // Chat Response Data
 export interface ChatResponseData {
   question: string;
   message: string;
+}
+
+export interface ChatMessageResponse {
+  id: string;
+  conversationId: string;
+  role: string;
+  content: string;
+  order: string;
+  createdAt: string;
+  updatedAt?: string | null;
+}
+
+export interface ConversationResponse {
+  conversationId?: string;
+  userId: string;
+  title: string;
+  isActive: boolean;
+  messageCount: number;
+  summary?: string | null;
+  messages: ChatMessageResponse[];
 }
 
 // Document Upload Request
@@ -42,6 +63,9 @@ export type DocumentUploadResponse = ApiResponse<string>;
 // Ask Response - what we use internally
 export interface AskResponse {
   answer: string;
+  conversationId?: string;
+  id?: string;
+  createdAt?: string;
   sources?: string[];
   confidence?: number;
 }

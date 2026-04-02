@@ -3,6 +3,7 @@ import { Menu, X, Plus, FileText, Clock, Settings, LogOut, MessageSquare, Search
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../context/ToastContext';
+import { useConversation } from '../hooks/useConversation';
 import { Avatar } from './Avatar';
 
 interface SidebarProps {
@@ -13,14 +14,10 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activePage, onNavigate }) => {
-  const [conversations] = useState([
-    { id: '1', title: 'About React Fundamentals' },
-    { id: '2', title: 'TypeScript Best Practices' },
-    { id: '3', title: 'Web Performance Tips' },
-  ]);
   const { theme } = useTheme();
   const { logout, user } = useAuth();
   const { addToast } = useToast();
+  const { conversations, activeConversationId, selectConversation, startNewConversation, isLoadingConversations } = useConversation();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -65,7 +62,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activePage, o
 
           {/* New Conversation */}
           <div className="p-4">
-            <button className="btn-primary w-full flex items-center justify-center gap-2">
+            <button
+              onClick={() => {
+                startNewConversation();
+                onNavigate('chat');
+                onClose();
+              }}
+              className="btn-primary w-full flex items-center justify-center gap-2"
+            >
               <Plus className="w-4 h-4" />
               New Conversation
             </button>
@@ -113,16 +117,42 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activePage, o
           {/* Conversations */}
           <div className="flex-1 px-4 pt-2">
             <h3 className={`text-xs font-semibold ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'} uppercase px-2 mb-3`}>
-              Recent Conversations
+              {user?.name ? `${user.name}'s Conversations` : 'Recent Conversations'}
             </h3>
             <div className="space-y-2 mb-6">
-              {conversations.map((conv) => (
+              {isLoadingConversations && (
+                <p className={`text-sm px-3 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Loading conversations...
+                </p>
+              )}
+
+              {!isLoadingConversations && conversations.length === 0 && (
+                <p className={`text-sm px-3 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+                  No conversations yet.
+                </p>
+              )}
+
+              {!isLoadingConversations && conversations.map((conv) => (
                 <button
                   key={conv.id}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm ${theme === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-300 hover:bg-gray-800'} transition-colors truncate flex items-center gap-2`}
+                  disabled={!conv.conversationId}
+                  onClick={async () => {
+                    await selectConversation(conv.conversationId);
+                    onNavigate('chat');
+                    onClose();
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors truncate flex items-center gap-2 ${
+                    activeConversationId === conv.conversationId
+                      ? theme === 'light'
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'bg-purple-900/30 text-purple-300'
+                      : theme === 'light'
+                        ? 'text-gray-700 hover:bg-gray-100'
+                        : 'text-gray-300 hover:bg-gray-800'
+                  } ${!conv.conversationId ? 'opacity-60 cursor-not-allowed' : ''}`}
                 >
                   <Clock className="w-4 h-4 flex-shrink-0" />
-                  {conv.title}
+                  <span className="truncate">{conv.title || 'Untitled conversation'}</span>
                 </button>
               ))}
             </div>

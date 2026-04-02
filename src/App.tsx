@@ -9,6 +9,7 @@ import { MainLayout } from './layouts/MainLayout';
 import { ChatPage } from './pages/ChatPage';
 import { ToolsPage } from './pages/ToolsPage';
 import { AuthPage } from './pages/AuthPage';
+import { ConversationProvider } from './context/ConversationContext';
 import './App.css';
 
 type AppPage = 'chat' | 'tools';
@@ -76,9 +77,11 @@ const AppContent = () => {
       {!isAuthenticated ? (
         <AuthPage />
       ) : (
-        <MainLayout activePage={activePage} onNavigate={setActivePage}>
-          {activePage === 'chat' ? <ChatPage /> : <ToolsPage />}
-        </MainLayout>
+        <ConversationProvider>
+          <MainLayout activePage={activePage} onNavigate={setActivePage}>
+            {activePage === 'chat' ? <ChatPage /> : <ToolsPage />}
+          </MainLayout>
+        </ConversationProvider>
       )}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </>
