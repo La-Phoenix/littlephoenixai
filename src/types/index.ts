@@ -24,6 +24,7 @@ export interface ApiResponse<T> {
 export interface ChatRequest {
   question: string;
   conversationId?: string;
+  isNewConversation?: boolean;
 }
 
 // Chat Response Data

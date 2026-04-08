@@ -68,7 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activePage, o
                 onNavigate('chat');
                 onClose();
               }}
-              className="btn-primary w-full flex items-center justify-center gap-2"
+              className="btn-primary w-full flex items-center justify-center gap-2 hover:cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               New Conversation
@@ -135,13 +135,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activePage, o
               {!isLoadingConversations && conversations.map((conv) => (
                 <button
                   key={conv.id}
-                  disabled={!conv.conversationId}
                   onClick={async () => {
-                    await selectConversation(conv.conversationId);
-                    onNavigate('chat');
-                    onClose();
+                    if (conv.conversationId) {
+                      await selectConversation(conv.conversationId);
+                      onNavigate('chat');
+                      onClose();
+                    }
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors truncate flex items-center gap-2 ${
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors truncate flex items-center gap-2 cursor-pointer ${
                     activeConversationId === conv.conversationId
                       ? theme === 'light'
                         ? 'bg-purple-100 text-purple-700'
@@ -149,7 +150,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activePage, o
                       : theme === 'light'
                         ? 'text-gray-700 hover:bg-gray-100'
                         : 'text-gray-300 hover:bg-gray-800'
-                  } ${!conv.conversationId ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  }`}
                 >
                   <Clock className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate">{conv.title || 'Untitled conversation'}</span>

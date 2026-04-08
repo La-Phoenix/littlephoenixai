@@ -62,11 +62,12 @@ class LittlePhoenixAPI {
   /**
    * Ask the AI assistant a question
    */
-  async ask(question: string, conversationId?: string): Promise<AskResponse> {
+  async ask(question: string, conversationId?: string, isNewConversation: boolean = false): Promise<AskResponse> {
     try {
       const request: ChatRequest = {
         question,
         ...(conversationId ? { conversationId } : {}),
+        ...(isNewConversation ? { isNewConversation } : { isNewConversation: false }),
       };
       const response = await this.instance.post<ApiResponse<ChatResponseData | ChatMessageResponse>>('/chat', request);
       
@@ -117,8 +118,9 @@ class LittlePhoenixAPI {
    */
   async getConversationMessages(conversationId?: string): Promise<ChatMessageResponse[]> {
     try {
+      const params = conversationId ? { conversationId } : {};
       const response = await this.instance.get<ApiResponse<ChatMessageResponse[]>>('/chat/conversations/messages', {
-        params: conversationId ? { conversationId } : undefined,
+        params,
       });
 
       if (!response.data.isSuccess || !response.data.data) {

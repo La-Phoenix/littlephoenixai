@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
@@ -24,7 +24,7 @@ interface ConversationContextType {
   isSendingMessage: boolean;
   chatError: string | null;
   sendMessage: (text: string) => Promise<void>;
-  selectConversation: (conversationId?: string) => Promise<void>;
+  selectConversation: (conversationId?: string, skipFetch?: boolean) => Promise<void>;
   startNewConversation: () => void;
   refreshConversations: () => Promise<void>;
 }
@@ -38,10 +38,12 @@ const defaultAssistantMessage = (): Message => ({
 });
 
 const mapConversationId = (conversation: ConversationResponse): string | undefined => {
+  // First check if conversationId is directly on the conversation object (from backend)
   if (conversation.conversationId) {
     return conversation.conversationId;
   }
 
+  // Fallback to getting it from the first message if available
   if (conversation.messages.length > 0) {
     return conversation.messages[0].conversationId;
   }
@@ -109,31 +111,45 @@ export const ConversationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
+  const isCreatingNewConversationRef = useRef(false);
 
   const fetchConversations = useCallback(async (): Promise<ConversationItem[]> => {
+    console.log('fetchConversations: starting');
     const data = await api.getUserConversations();
+    console.log('fetchConversations: received data', { count: data.length });
     const mapped = data
       .map((conversation, index) => mapConversationItem(conversation, index))
       .sort((a, b) => new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime());
+    console.log('fetchConversations: mapped conversations', { count: mapped.length, ids: mapped.map(c => c.conversationId) });
     setConversations(mapped);
     return mapped;
   }, []);
 
-  const selectConversation = useCallback(async (conversationId?: string) => {
+  const selectConversation = useCallback(async (conversationId?: string, skipFetch?: boolean) => {
+    // Don't fetch messages if explicitly skipped
+    if (skipFetch) {
+      console.log('selectConversation: skipping fetch', { conversationId });
+      setActiveConversationId(conversationId ?? null);
+      return;
+    }
+
+    console.log('selectConversation: fetching messages', { conversationId });
 
     try {
       setIsLoadingMessages(true);
       setChatError(null);
       const response = await api.getConversationMessages(conversationId);
+      console.log('selectConversation: received messages', { count: response.length });
+      
       const mappedMessages = response
         .slice()
         .sort((a, b) => Number(a.order) - Number(b.order))
         .map(mapToUiMessage);
-      const normalizedMessages = normalizeConversationMessages(mappedMessages);
 
       setActiveConversationId(conversationId ?? (response[0]?.conversationId ?? null));
-      setMessages(normalizedMessages.length > 0 ? normalizedMessages : [defaultAssistantMessage()]);
+      setMessages(mappedMessages.length > 0 ? mappedMessages : [defaultAssistantMessage()]);
     } catch (error) {
+      console.error('selectConversation: error', error);
       setChatError(error instanceof Error ? error.message : 'Failed to load conversation messages');
     } finally {
       setIsLoadingMessages(false);
@@ -141,35 +157,55 @@ export const ConversationProvider: React.FC<{ children: ReactNode }> = ({ childr
   }, []);
 
   const refreshConversations = useCallback(async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      console.log('refreshConversations: not authenticated');
+      return;
+    }
 
     try {
+      console.log('refreshConversations: starting');
       setIsLoadingConversations(true);
       const mapped = await fetchConversations();
+      console.log('refreshConversations: fetched conversations', { count: mapped.length });
 
       if (mapped.length === 0) {
+        console.log('refreshConversations: no conversations');
         setActiveConversationId(null);
         setMessages([defaultAssistantMessage()]);
         return;
       }
 
-      const activeStillExists = activeConversationId && mapped.some((conversation) => conversation.conversationId === activeConversationId);
-      if (!activeStillExists) {
-        const activeConversation = mapped.find((conversation) => conversation.isActive);
-        if (activeConversation) {
-          await selectConversation();
-        } else {
-          await selectConversation(mapped[0].conversationId);
-        }
+      // Skip auto-selection when intentionally creating a new conversation
+      if (isCreatingNewConversationRef.current) {
+        console.log('refreshConversations: creating new conversation, skipping');
+        isCreatingNewConversationRef.current = false;
+        return;
+      }
+
+      // Try to find and select the active conversation from the backend
+      const activeConversation = mapped.find((conversation) => conversation.isActive);
+      console.log('refreshConversations: active conversation', { found: !!activeConversation, conversationId: activeConversation?.conversationId });
+      
+      if (activeConversation && activeConversation.conversationId) {
+        console.log('refreshConversations: calling selectConversation with active', { conversationId: activeConversation.conversationId });
+        await selectConversation(activeConversation.conversationId, false);
+      } else if (mapped[0] && mapped[0].conversationId) {
+        // Fallback to first conversation if no active one found
+        console.log('refreshConversations: calling selectConversation with first', { conversationId: mapped[0].conversationId });
+        await selectConversation(mapped[0].conversationId, false);
+      } else {
+        console.log('refreshConversations: no valid conversation to select');
       }
     } catch (error) {
+      console.error('refreshConversations: error', error);
       setChatError(error instanceof Error ? error.message : 'Failed to load conversation history');
     } finally {
       setIsLoadingConversations(false);
     }
-  }, [activeConversationId, fetchConversations, isAuthenticated, selectConversation]);
+  }, [fetchConversations, isAuthenticated, selectConversation]);
 
   const startNewConversation = useCallback(() => {
+    isCreatingNewConversationRef.current = true;
     setActiveConversationId(null);
     setChatError(null);
     setMessages([defaultAssistantMessage()]);
@@ -192,7 +228,8 @@ export const ConversationProvider: React.FC<{ children: ReactNode }> = ({ childr
       setChatError(null);
 
       try {
-        const response = await api.ask(trimmedText, activeConversationId ?? undefined);
+        const isNewConv = !activeConversationId;
+        const response = await api.ask(trimmedText, activeConversationId ?? undefined, isNewConv);
 
         const assistantMessage: Message = {
           id: response.id ?? `local-assistant-${Date.now()}`,
@@ -202,16 +239,18 @@ export const ConversationProvider: React.FC<{ children: ReactNode }> = ({ childr
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
+        isCreatingNewConversationRef.current = false;
 
         if (response.conversationId) {
           setActiveConversationId(response.conversationId);
           await refreshConversations();
-          await selectConversation(response.conversationId);
+          await selectConversation(response.conversationId, false);
         } else {
           await refreshConversations();
         }
       } catch (error) {
         setChatError(error instanceof Error ? error.message : 'Failed to get response');
+        isCreatingNewConversationRef.current = false;
       } finally {
         setIsSendingMessage(false);
       }
