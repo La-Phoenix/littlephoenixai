@@ -44,6 +44,7 @@ export interface ChatMessageResponse {
 }
 
 export interface ConversationResponse {
+  id?: string;
   conversationId?: string;
   userId: string;
   title: string;

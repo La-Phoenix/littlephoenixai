@@ -38,7 +38,12 @@ const defaultAssistantMessage = (): Message => ({
 });
 
 const mapConversationId = (conversation: ConversationResponse): string | undefined => {
-  // First check if conversationId is directly on the conversation object (from backend)
+  // First check if 'id' is present (primary backend field)
+  if (conversation.id) {
+    return conversation.id;
+  }
+
+  // Check if conversationId is directly on the conversation object
   if (conversation.conversationId) {
     return conversation.conversationId;
   }
