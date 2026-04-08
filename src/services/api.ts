@@ -69,6 +69,7 @@ class LittlePhoenixAPI {
         ...(conversationId ? { conversationId } : {}),
         ...(isNewConversation ? { isNewConversation } : { isNewConversation: false }),
       };
+      console.log('api.ask: sending request', request);
       const response = await this.instance.post<ApiResponse<ChatResponseData | ChatMessageResponse>>('/chat', request);
       
       if (!response.data.isSuccess || !response.data.data) {
