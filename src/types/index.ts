@@ -52,6 +52,8 @@ export interface ConversationResponse {
   messageCount: number;
   summary?: string | null;
   messages: ChatMessageResponse[];
+  createdAt?: string;
+  updatedAt?: string | null;
 }
 
 // Document Upload Request

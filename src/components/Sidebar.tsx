@@ -120,12 +120,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activePage, o
               {user?.name ? `${user.name}'s Conversations` : 'Recent Conversations'}
             </h3>
             <div className="space-y-2 mb-6">
-              {isLoadingConversations && (
-                <p className={`text-sm px-3 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
-                  Loading conversations...
-                </p>
-              )}
-
               {!isLoadingConversations && conversations.length === 0 && (
                 <p className={`text-sm px-3 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
                   No conversations yet.

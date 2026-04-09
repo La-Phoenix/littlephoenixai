@@ -58,7 +58,6 @@ const mapConversationId = (conversation: ConversationResponse): string | undefin
 
 const mapConversationItem = (conversation: ConversationResponse, index: number): ConversationItem => {
   const conversationId = mapConversationId(conversation);
-  const latestMessage = conversation.messages[conversation.messages.length - 1];
 
   return {
     id: conversationId ?? `${conversation.userId}-${conversation.title}-${index}`,
@@ -68,7 +67,7 @@ const mapConversationItem = (conversation: ConversationResponse, index: number):
     isActive: conversation.isActive,
     messageCount: conversation.messageCount,
     summary: conversation.summary,
-    updatedAt: latestMessage?.updatedAt ?? latestMessage?.createdAt,
+    updatedAt: conversation.updatedAt || conversation.createdAt,
   };
 };
 
