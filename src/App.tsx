@@ -10,6 +10,7 @@ import { ChatPage } from './pages/ChatPage';
 import { ToolsPage } from './pages/ToolsPage';
 import { AuthPage } from './pages/AuthPage';
 import { ConversationProvider } from './context/ConversationContext';
+import { DirectChatProvider } from './context/DirectChatContext';
 import './App.css';
 
 type AppPage = 'chat' | 'tools';
@@ -60,6 +61,17 @@ const AppContent = () => {
     }
   }, [isAuthenticated, user, addToast]);
 
+  useEffect(() => {
+    const handleNavigateChat = () => {
+      setActivePage('chat');
+    };
+
+    window.addEventListener('lp:navigate-chat', handleNavigateChat as EventListener);
+    return () => {
+      window.removeEventListener('lp:navigate-chat', handleNavigateChat as EventListener);
+    };
+  }, []);
+
   // Show loading state while checking authentication
   if (isLoading) {
     return (
@@ -78,9 +90,11 @@ const AppContent = () => {
         <AuthPage />
       ) : (
         <ConversationProvider>
-          <MainLayout activePage={activePage} onNavigate={setActivePage}>
-            {activePage === 'chat' ? <ChatPage /> : <ToolsPage />}
-          </MainLayout>
+          <DirectChatProvider>
+            <MainLayout activePage={activePage} onNavigate={setActivePage}>
+              {activePage === 'chat' ? <ChatPage /> : <ToolsPage />}
+            </MainLayout>
+          </DirectChatProvider>
         </ConversationProvider>
       )}
       <ToastContainer toasts={toasts} onRemove={removeToast} />

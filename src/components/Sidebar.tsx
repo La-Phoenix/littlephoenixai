@@ -82,7 +82,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activePage, o
             </h3>
             <div className="space-y-2">
               <button
-                onClick={() => onNavigate('chat')}
+                onClick={() => {
+                  onNavigate('chat');
+                  window.dispatchEvent(new Event('lp:show-chat-list'));
+                }}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm ${
                   activePage === 'chat'
                     ? theme === 'light'
@@ -131,6 +134,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activePage, o
                   key={conv.id}
                   onClick={async () => {
                     if (conv.conversationId) {
+                      window.dispatchEvent(new Event('lp:show-chat-list'));
                       await selectConversation(conv.conversationId);
                       onNavigate('chat');
                       onClose();

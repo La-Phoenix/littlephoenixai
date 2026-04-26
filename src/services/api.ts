@@ -11,6 +11,20 @@ import type {
   AuthResponse,
   ChatMessageResponse,
   ConversationResponse,
+  DirectChat,
+  DirectChatMessage,
+  DirectChatCreateRequest,
+  DirectChatResponse,
+  CreateDirectChatRequest,
+  CreateGroupChatRequest,
+  CreateRagAssistantGroupRequest,
+  SendMessageRequest,
+  UpdateChatRequest,
+  ChatDto,
+  ChatMessageDto,
+  GetChatResponse,
+  ChatType,
+  RealtimeChatDto,
 } from '../types';
 
 // Set credentials globally for all axios requests
@@ -219,6 +233,287 @@ class LittlePhoenixAPI {
     } catch (error) {
       throw this.handleError(error);
     }
+  }
+
+  /**
+   * Create a direct chat with another user
+   */
+  async createDirectChat(request: DirectChatCreateRequest): Promise<DirectChatResponse> {
+    try {
+      const response = await this.instance.post<DirectChatResponse>('/RealtimeChat/direct', request);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get a direct chat by ID
+   */
+  async getDirectChat(chatId: string): Promise<DirectChat> {
+    try {
+      const response = await this.instance.get<ApiResponse<DirectChat>>(`/RealtimeChat/direct/${chatId}`);
+      
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to fetch chat');
+      }
+      
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get messages for a direct chat
+   */
+  async getDirectChatMessages(chatId: string): Promise<DirectChatMessage[]> {
+    try {
+      const response = await this.instance.get<ApiResponse<DirectChatMessage[]>>(
+        `/RealtimeChat/direct/${chatId}/messages`
+      );
+      
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to fetch messages');
+      }
+      
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get all direct chats for current user
+   */
+  async getUserDirectChats(): Promise<DirectChat[]> {
+    try {
+      const response = await this.instance.get<ApiResponse<DirectChat[]>>('/RealtimeChat/direct');
+      
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to fetch chats');
+      }
+      
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  // ============================================
+  // NEW CHAT SYSTEM METHODS
+  // ============================================
+
+  /**
+   * Create a direct chat (user-to-user or user-to-assistant)
+   */
+  async createChat(request: CreateDirectChatRequest): Promise<ChatDto> {
+    try {
+      const response = await this.instance.post<ApiResponse<ChatDto>>('/RealtimeChat/direct', request);
+      
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to create chat');
+      }
+      
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Create a group chat
+   */
+  async createGroupChat(request: CreateGroupChatRequest): Promise<ChatDto> {
+    try {
+      const response = await this.instance.post<ApiResponse<ChatDto>>('/RealtimeChat/group', request);
+      
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to create group chat');
+      }
+      
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Create a RAG assistant group chat
+   */
+  async createRagAssistantGroup(request: CreateRagAssistantGroupRequest): Promise<ChatDto> {
+    try {
+      const response = await this.instance.post<ApiResponse<ChatDto>>('/RealtimeChat/rag-group', request);
+      
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to create RAG group');
+      }
+      
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get a chat by ID with all messages
+   */
+  async getChat(chatId: string): Promise<GetChatResponse> {
+    try {
+      const response = await this.instance.get<ApiResponse<GetChatResponse>>(`/RealtimeChat/${chatId}`);
+      
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to fetch chat');
+      }
+      
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get realtime chat details (includes members presence state)
+   */
+  async getRealtimeChat(chatId: string): Promise<RealtimeChatDto> {
+    try {
+      const response = await this.instance.get<ApiResponse<RealtimeChatDto>>(`/RealtimeChat/${chatId}`);
+
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to fetch realtime chat');
+      }
+
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get all chats for current user with optional type filter
+   */
+  async getUserChats(typeFilter?: ChatType): Promise<ChatDto[]> {
+    try {
+      const params: Record<string, string> = {};
+      if (typeFilter) {
+        params.typeFilter = typeFilter;
+      }
+
+      const response = await this.instance.get<ApiResponse<ChatDto[]>>('/RealtimeChat', { params });
+
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to fetch chats');
+      }
+
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Search chats by name or email
+   */
+  async searchChats(query: string): Promise<ChatDto[]> {
+    try {
+      const response = await this.instance.get<ApiResponse<ChatDto[]>>('/RealtimeChat/search', {
+        params: { query },
+      });
+
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to search chats');
+      }
+
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Send a message to a chat (HTTP fallback, primary is WebSocket)
+   */
+  async sendChatMessage(chatId: string, request: SendMessageRequest): Promise<ChatMessageDto> {
+    try {
+      const response = await this.instance.post<ApiResponse<ChatMessageDto>>(
+        `/RealtimeChat/${chatId}/message`,
+        request
+      );
+      
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to send message');
+      }
+      
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Update a chat (name, description)
+   */
+  async updateChat(chatId: string, request: UpdateChatRequest): Promise<ChatDto> {
+    try {
+      const response = await this.instance.put<ApiResponse<ChatDto>>(`/RealtimeChat/${chatId}`, request);
+      
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to update chat');
+      }
+      
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Delete a chat
+   */
+  async deleteChat(chatId: string): Promise<void> {
+    try {
+      const response = await this.instance.delete<ApiResponse<null>>(`/RealtimeChat/${chatId}`);
+      
+      if (!response.data.isSuccess) {
+        throw new Error(response.data.message || 'Failed to delete chat');
+      }
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Search for users to start a chat with
+   */
+  async searchUsers(query: string): Promise<any[]> {
+    try {
+      // Return empty array for queries less than 2 characters
+      if (query.length < 2) {
+        return [];
+      }
+
+      const response = await this.instance.get<ApiResponse<any[]>>('/RealtimeChat/search-users', {
+        params: { query },
+      });
+
+      if (!response.data.isSuccess || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to search users');
+      }
+
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get WebSocket URL for a chat
+   */
+  getWebSocketURL(chatId: string): string {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = import.meta.env.VITE_API_BASE_URL;
+    const wsHost = host.replace(/^https?:\/\//, '').replace(/^http:\/\//, '').replace(/\/api$/, '');
+    return `${protocol}//${wsHost}/api/RealtimeChat/ws/${chatId}`;
   }
 
   /**
